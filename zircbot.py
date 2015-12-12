@@ -21,7 +21,6 @@ It subscribes to a pub server and forward the message to the
 configured IRC chans.
 '''
 
-from optparse import OptionParser
 import shlex
 import sys
 import yaml
@@ -92,13 +91,6 @@ def main():
 
     with open('config.yml') as f:
         _CONFIG = yaml.load(f.read())
-    parser = OptionParser("")
-    parser.add_option("-m", "--method", dest="method",
-                      help="0MQ socket connection: bind|connect")
-    parser.add_option("-e", "--endpoint", dest="endpoint", help="0MQ Endpoint")
-    parser.set_defaults(method="connect", endpoint="tcp://localhost:5555")
-
-    (options, args) = parser.parse_args()
 
     log.startLogging(sys.stderr)
 
@@ -106,7 +98,7 @@ def main():
     reactor.connectTCP(_CONFIG['host'], _CONFIG['port'], ircf)
 
     zf = ZmqFactory()
-    e = ZmqEndpoint(options.method, options.endpoint)
+    e = ZmqEndpoint(_CONFIG['method'], _CONFIG['endpoint'])
 
     s = ZmqSubConnection(zf, e)
     s.subscribe("")

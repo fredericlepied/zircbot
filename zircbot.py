@@ -94,37 +94,34 @@ class IrcFactory(protocol.ReconnectingClientFactory):
 
 
 def trello_to_message(data):
+    card_assoc = {
+        'addMemberToCard': 'added to',
+        'removeMemberFromCard': 'removed from',
+        'createCard': 'created',
+        'commentCard': 'commented on',
+        'updateCard': 'updated',
+    }
+    board_assoc = {
+        'addMemberToBoard': 'added to',
+        'removeMemberFromBoard': 'removed from',
+    }
     try:
-        if data['action']['type'] == 'addMemberToCard':
-            return '%s added to the card "%s": %s/%s' % \
+        if data['action']['type'] in card_assoc:
+            if 'member' in data['action']:
+                member = 'member'
+            else:
+                member = 'memberCreator'
+            return '%s %s the card "%s": %s/%s' % \
+                (data['action'][member]['fullName'],
+                 card_assoc[data['action']['type']],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        elif data['action']['type'] in board_assoc:
+            return '%s %s the board: %s' % \
                 (data['action']['member']['fullName'],
-                 data['action']['data']['card']['name'],
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
-        elif data['action']['type'] == 'removeMemberFromCard':
-            return '%s removed from the card "%s": %s/%s' % \
-                (data['action']['member']['fullName'],
-                 data['action']['data']['card']['name'],
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
-        elif data['action']['type'] == 'createCard':
-            return '%s created the card "%s": %s/%s' % \
-                (data['action']['memberCreator']['fullName'],
-                 data['action']['data']['card']['name'],
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
-        elif data['action']['type'] == 'commentCard':
-            return '%s commented on the card "%s": %s/%s' % \
-                (data['action']['memberCreator']['fullName'],
-                 data['action']['data']['card']['name'],
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
-        elif data['action']['type'] == 'updateCard':
-            return '%s updated the card "%s": %s/%s' % \
-                (data['action']['memberCreator']['fullName'],
-                 data['action']['data']['card']['name'],
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
+                 board_assoc[data['action']['type']],
+                 data['model']['shortUrl'])
         else:
             log.msg('unsupported data %s:' % data)
     except Exception:

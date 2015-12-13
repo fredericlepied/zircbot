@@ -68,7 +68,8 @@ class IrcProtocol(irc.IRCClient):
         nick, _, host = user.partition('!')
         log.msg("{} <{}> {}".format(channel, nick, message))
         message = shlex.split(message.strip())
-        if channel != _CONFIG['nickname'] and len(message) > 1:
+        if (channel != _CONFIG['nickname'] and len(message) > 1 and
+           message[0][-1] == ':'):
             message = message[1:]
         if channel == _CONFIG['nickname']:
             channel = nick

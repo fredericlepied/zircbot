@@ -2,8 +2,6 @@
 host: irc.freenode.net
 # irc server port
 port: 6667
-# irc chans to forward the message to
-channels: ['#mychan']
 # nick name of the bot
 nickname: zircbot
 # password of the nick name
@@ -12,3 +10,6 @@ password: ''
 method: connect
 # 0MQ Endpoint
 endpoint: tcp://localhost:7777
+# association between trello board and irc channels
+trello:
+  <BOARD_SHORT_ID>: ['#mychan']

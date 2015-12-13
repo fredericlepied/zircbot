@@ -14,11 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''
-IRC bot that forward 0mq messages to IRC chans.
+'''IRC bot that forward 0mq messages to IRC chans.
 
-It subscribes to a pub server and forward the message to the
-configured IRC chans.
+It subscribes to a pub server, interpret the JSON data into a message
+and then forward the message to the configured IRC chans.
+
 '''
 
 import json
@@ -35,9 +35,6 @@ from twisted.python import log
 from twisted.words.protocols import irc
 
 _CONFIG = None
-
-
-
 _IRC_PROTOCOL = None
 
 
@@ -55,7 +52,11 @@ class IrcProtocol(irc.IRCClient):
         self.realname = _CONFIG['nickname']
 
     def signedOn(self):
-        for channel in _CONFIG["channels"]:
+        channels = set()
+        for board_name in _CONFIG['trello'].keys():
+            for channel in _CONFIG['trello'][board_name]:
+                channels.add(channel)
+        for channel in channels:
             self.join(channel)
         log.msg('Connected to IRC server %s:%s' % (_CONFIG['host'],
                                                    _CONFIG['port']))
@@ -84,11 +85,17 @@ class IrcProtocol(irc.IRCClient):
 
     def forward(self, data):
         if 'trello' in data:
-            message = trello_to_message(data['trello'])
+            trello_data = data['trello']
+            message = trello_to_message(trello_data)
+            try:
+                bd_name = trello_data['action']['data']['board']['shortLink']
+                channels = _CONFIG['trello'][bd_name]
+            except KeyError:
+                channels = []
         else:
             message = None
         if message:
-            for channel in _CONFIG['channels']:
+            for channel in channels:
                 self.send(channel, message)
 
     def send(self, channel, message):
@@ -100,11 +107,19 @@ class IrcFactory(protocol.ReconnectingClientFactory):
     protocol = IrcProtocol
 
 
+def get_card_name(card_data):
+    try:
+        return card_data['name']
+    except KeyError:
+        return card_data['idShort']
+
+
 def trello_to_message(data):
     card_assoc = {
         'addMemberToCard': 'added to',
         'removeMemberFromCard': 'removed from',
         'createCard': 'created',
+        'deleteCard': 'deleted',
         'commentCard': 'commented on',
         'updateCard': 'updated',
     }
@@ -121,7 +136,7 @@ def trello_to_message(data):
             return '%s %s the card "%s": %s/%s' % \
                 (data['action'][member]['fullName'],
                  card_assoc[data['action']['type']],
-                 data['action']['data']['card']['name'],
+                 get_card_name(data['action']['data']['card']),
                  'https://trello.com/c',
                  data['action']['data']['card']['shortLink'])
         elif data['action']['type'] in board_assoc:

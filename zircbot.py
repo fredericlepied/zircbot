@@ -37,10 +37,6 @@ from twisted.words.protocols import irc
 _CONFIG = None
 
 
-def say(msg, channel, message):
-    msg(channel, str(message))
-    log.msg("{}: {}".format(channel, message))
-
 
 _IRC_PROTOCOL = None
 
@@ -67,16 +63,22 @@ class IrcProtocol(irc.IRCClient):
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         log.msg("{} <{}> {}".format(channel, nick, message))
+        # only answer to message involving the robot's nickname or to
+        # a private message
+        if message.find(self.nickname) == -1 and channel != self.nickname:
+            log.msg("nothing for me")
+            return
         message = shlex.split(message.strip())
-        if (channel != _CONFIG['nickname'] and len(message) > 1 and
+        if (channel != self.nickname and len(message) > 1 and
            message[0][-1] == ':'):
             message = message[1:]
-        if channel == _CONFIG['nickname']:
+        if channel == self.nickname:
             channel = nick
             prefix = ''
         else:
             prefix = '%s: ' % nick
-        say(self.msg, channel,
+        self.send(
+            channel,
             "%sI just forward messages. I don\'t know what '%s' mean ;-)" %
             (prefix, message[0]))
 
@@ -87,7 +89,11 @@ class IrcProtocol(irc.IRCClient):
             message = None
         if message:
             for channel in _CONFIG['channels']:
-                say(self.msg, channel, message)
+                self.send(channel, message)
+
+    def send(self, channel, message):
+        self.msg(channel, str(message))
+        log.msg("{}: {}".format(channel, message))
 
 
 class IrcFactory(protocol.ReconnectingClientFactory):

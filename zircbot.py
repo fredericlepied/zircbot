@@ -21,8 +21,10 @@ It subscribes to a pub server and forward the message to the
 configured IRC chans.
 '''
 
+import json
 import shlex
 import sys
+import traceback
 import yaml
 
 from txzmq import ZmqEndpoint
@@ -36,7 +38,7 @@ _CONFIG = None
 
 
 def say(msg, channel, message):
-    msg(channel, message)
+    msg(channel, str(message))
     log.msg("{}: {}".format(channel, message))
 
 
@@ -77,13 +79,58 @@ class IrcProtocol(irc.IRCClient):
             "%sI just forward messages. I don\'t know what '%s' mean ;-)" %
             (prefix, message[0]))
 
-    def forward(self, message):
-        for channel in _CONFIG['channels']:
-            say(self.msg, channel, message)
+    def forward(self, data):
+        if 'trello' in data:
+            message = trello_to_message(data['trello'])
+        else:
+            message = None
+        if message:
+            for channel in _CONFIG['channels']:
+                say(self.msg, channel, message)
 
 
 class IrcFactory(protocol.ReconnectingClientFactory):
     protocol = IrcProtocol
+
+
+def trello_to_message(data):
+    try:
+        if data['action']['type'] == 'addMemberToCard':
+            return '%s added to the card "%s": %s/%s' % \
+                (data['action']['member']['fullName'],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        elif data['action']['type'] == 'removeMemberFromCard':
+            return '%s removed from the card "%s": %s/%s' % \
+                (data['action']['member']['fullName'],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        elif data['action']['type'] == 'createCard':
+            return '%s created the card "%s": %s/%s' % \
+                (data['action']['memberCreator']['fullName'],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        elif data['action']['type'] == 'commentCard':
+            return '%s commented on the card "%s": %s/%s' % \
+                (data['action']['memberCreator']['fullName'],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        elif data['action']['type'] == 'updateCard':
+            return '%s updated the card "%s": %s/%s' % \
+                (data['action']['memberCreator']['fullName'],
+                 data['action']['data']['card']['name'],
+                 'https://trello.com/c',
+                 data['action']['data']['card']['shortLink'])
+        else:
+            log.msg('unsupported data %s:' % data)
+    except Exception:
+        log.msg('error decoding data %s:' % data)
+        log.msg(traceback.format_exc())
+    return None
 
 
 def main():
@@ -104,9 +151,8 @@ def main():
     s.subscribe("")
 
     def do_forward(*args):
-        print "message received: %r" % (args, )
         if _IRC_PROTOCOL:
-            _IRC_PROTOCOL.forward(args[0])
+            _IRC_PROTOCOL.forward(json.loads(args[0]))
 
     s.gotMessage = do_forward
 

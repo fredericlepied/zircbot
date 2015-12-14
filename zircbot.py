@@ -114,6 +114,13 @@ def get_card_name(card_data):
         return card_data['idShort']
 
 
+def get_url(data):
+    if 'attachment' in data and 'url' in data['attachment']:
+        return data['attachment']['url']
+    else:
+        return 'https://trello.com/c/' + data['card']['shortLink']
+
+
 def trello_to_message(data):
     card_assoc = {
         'addMemberToCard': 'added to',
@@ -122,6 +129,7 @@ def trello_to_message(data):
         'deleteCard': 'deleted',
         'commentCard': 'commented on',
         'updateCard': 'updated',
+        'addAttachmentToCard': 'added an attachment to',
     }
     board_assoc = {
         'addMemberToBoard': 'added to',
@@ -133,12 +141,11 @@ def trello_to_message(data):
                 member = 'member'
             else:
                 member = 'memberCreator'
-            return '%s %s the card "%s": %s/%s' % \
+            return '%s %s the card "%s": %s' % \
                 (data['action'][member]['fullName'],
                  card_assoc[data['action']['type']],
                  get_card_name(data['action']['data']['card']),
-                 'https://trello.com/c',
-                 data['action']['data']['card']['shortLink'])
+                 get_url(data['action']['data']))
         elif data['action']['type'] in board_assoc:
             return '%s %s the board: %s' % \
                 (data['action']['member']['fullName'],

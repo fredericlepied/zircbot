@@ -121,29 +121,42 @@ def get_url(data):
         return 'https://trello.com/c/' + data['card']['shortLink']
 
 
+_CARD_ASSOC = {
+    'addMemberToCard': 'added to',
+    'removeMemberFromCard': 'removed from',
+    'createCard': 'created',
+    'deleteCard': 'deleted',
+    'commentCard': 'commented on',
+    'updateCard': 'updated',
+    'addAttachmentToCard': 'added an attachment to',
+}
+
+
+def get_action(data):
+    if data['type'] == 'updateCard':
+        if 'listAfter' in data['data']:
+            return('moved to the list "%s"' %
+                   data['data']['listAfter']['name'])
+        if ('closed' in data['data']['card'] and
+            data['data']['card']['closed'] == True):
+            return('archived')
+    return _CARD_ASSOC[data['type']]
+
+
 def trello_to_message(data):
-    card_assoc = {
-        'addMemberToCard': 'added to',
-        'removeMemberFromCard': 'removed from',
-        'createCard': 'created',
-        'deleteCard': 'deleted',
-        'commentCard': 'commented on',
-        'updateCard': 'updated',
-        'addAttachmentToCard': 'added an attachment to',
-    }
     board_assoc = {
         'addMemberToBoard': 'added to',
         'removeMemberFromBoard': 'removed from',
     }
     try:
-        if data['action']['type'] in card_assoc:
+        if data['action']['type'] in _CARD_ASSOC:
             if 'member' in data['action']:
                 member = 'member'
             else:
                 member = 'memberCreator'
             return '%s %s the card "%s": %s' % \
                 (data['action'][member]['fullName'],
-                 card_assoc[data['action']['type']],
+                 get_action(data['action']),
                  get_card_name(data['action']['data']['card']),
                  get_url(data['action']['data']))
         elif data['action']['type'] in board_assoc:
@@ -184,6 +197,7 @@ def main():
 
     reactor.run()
 
-main()
+if __name__ == "__main__":
+    main()
 
 # zircbot.py ends here

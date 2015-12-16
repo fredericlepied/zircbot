@@ -129,6 +129,9 @@ _CARD_ASSOC = {
     'commentCard': 'commented on',
     'updateCard': 'updated',
     'addAttachmentToCard': 'added an attachment to',
+    'addChecklistToCard': 'not used',
+    'createCheckItem': 'not used',
+    'updateCheckItemStateOnCard': 'not used',
 }
 
 
@@ -137,9 +140,21 @@ def get_action(data):
         if 'listAfter' in data['data']:
             return('moved to the list "%s"' %
                    data['data']['listAfter']['name'])
-        if ('closed' in data['data']['card'] and
-            data['data']['card']['closed'] == True):
+        if 'closed' in data['data']['card'] and \
+           data['data']['card']['closed'] is True:
             return('archived')
+    elif data['type'] == 'addChecklistToCard':
+        return('added the list "%s" to' % data['data']['checklist']['name'])
+    elif data['type'] == 'createCheckItem':
+        return('added "%s" to the list "%s" of' %
+               (data['data']['checkItem']['name'],
+                data['data']['checklist']['name']))
+    elif data['type'] == 'updateCheckItemStateOnCard':
+        return('%schecked "%s" to the list "%s" of' %
+               ('' if data['data']['checkItem']['state'] == 'complete'
+                else 'un',
+                data['data']['checkItem']['name'],
+                data['data']['checklist']['name']))
     return _CARD_ASSOC[data['type']]
 
 
@@ -166,7 +181,7 @@ def trello_to_message(data):
                  data['model']['shortUrl'])
         else:
             log.msg('unsupported data %s:' % data)
-    except Exception:
+    except:
         log.msg('error decoding data %s:' % data)
         log.msg(traceback.format_exc())
     return None

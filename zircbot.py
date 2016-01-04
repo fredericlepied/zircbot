@@ -132,6 +132,7 @@ _CARD_ASSOC = {
     'addChecklistToCard': 'not used',
     'createCheckItem': 'not used',
     'updateCheckItemStateOnCard': 'not used',
+    'updateComment': 'udpated a comment on',
 }
 
 

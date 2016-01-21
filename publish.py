@@ -24,6 +24,8 @@ configured IRC chans.
 from optparse import OptionParser
 import time
 
+import json
+
 from txzmq import ZmqEndpoint
 from txzmq import ZmqFactory
 from txzmq import ZmqPubConnection
@@ -35,7 +37,9 @@ def main():
     parser.add_option("-m", "--method", dest="method",
                       help="0MQ socket connection: bind|connect")
     parser.add_option("-e", "--endpoint", dest="endpoint", help="0MQ Endpoint")
-    parser.set_defaults(method="bind", endpoint="tcp://*:5555")
+    parser.add_option("-f", "--file", dest="file", help="JSON file to parse")
+    parser.add_option("-p", "--plugin", dest="plugin", help="zircbot plugin to use")
+    parser.set_defaults(method="bind", endpoint="tcp://*:7777", file='data/trello.json', plugin='trello')
 
     (options, args) = parser.parse_args()
 
@@ -45,9 +49,8 @@ def main():
     s = ZmqPubConnection(zf, e)
 
     def publish():
-        data = str(time.time())
-        print "publishing %r" % data
-        s.publish(data)
+        data = json.load(open(options.file, 'r'))
+        s.publish(json.dumps({options.plugin: data}))
         reactor.callLater(1, publish)
 
     publish()

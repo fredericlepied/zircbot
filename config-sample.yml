@@ -10,6 +10,9 @@ password: ''
 method: connect
 # 0MQ Endpoint
 endpoint: tcp://localhost:7777
-# association between trello board and irc channels
+# association between applications and irc channels
 trello:
   <BOARD_SHORT_ID>: ['#mychan']
+  <BOARD_SHORT_ID_2>: ['#mychan2']
+sensu:
+  <SENSU_DC_NAME>: ['#mychan-admin']

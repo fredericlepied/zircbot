@@ -27,11 +27,11 @@ log.startLogging(sys.stdout)
 
 
 def validate(obj, json_str, output):
-    result = zircbot.trello_to_message(json.loads(json_str)['trello'])
+    result = zircbot.plugins.trello.to_message(json.loads(json_str)['trello'])
     obj.assertEquals(result, output)
 
 
-class TestZircbot(unittest.TestCase):
+class TestTrelloSerizalization(unittest.TestCase):
 
     def test_move_card(self):
         validate(self, CARD_MOVED_JSON,

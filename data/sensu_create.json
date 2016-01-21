@@ -1,0 +1,55 @@
+{
+  "id": "2d344dc8-5f3b-457a-acb9-3674a21d75f7",
+  "dcid": "mydc",
+  "client": {
+    "name": "monitoring",
+    "address": "127.0.0.1",
+    "subscriptions": [
+      "base"
+    ],
+    "version": "0.21.0",
+    "timestamp": 1453389843
+  },
+  "check": {
+    "command": "check-ports.rb -h 0.0.0.0 -p 80 -t 30",
+    "interval": 10,
+    "standalone": true,
+    "handlers": [
+      "irc",
+      "file"
+    ],
+    "name": "uchiwa",
+    "issued": 1453389848,
+    "executed": 1453389848,
+    "duration": 0.145,
+    "output": "CheckPort CRITICAL: Connection refused by 0.0.0.0:80\n",
+    "status": 2,
+    "history": [
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2"
+    ],
+    "total_state_change": 0
+  },
+  "occurrences": 22,
+  "action": "create",
+  "timestamp": 1453389849
+}

@@ -56,10 +56,10 @@ class IrcProtocol(irc.IRCClient):
     def signedOn(self):
         channels = []
 
-        if _CONFIG['trello']:
+        if 'trello' in _CONFIG and _CONFIG['trello']:
             channels += trello.get_channels(_CONFIG['trello'])
 
-        if _CONFIG['sensu']:
+        if 'sensu' in _CONFIG and _CONFIG['sensu']:
             channels += sensu.get_channels(_CONFIG['sensu'])
 
         for channel in set(channels):

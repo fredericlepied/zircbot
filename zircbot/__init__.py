@@ -24,7 +24,6 @@ and then forward the message to the configured IRC chans.
 import json
 import shlex
 import sys
-import traceback
 import yaml
 
 from txzmq import ZmqEndpoint
@@ -90,10 +89,12 @@ class IrcProtocol(irc.IRCClient):
             (prefix, message[0]))
 
     def forward(self, data):
-        if 'trello' in data:
-           message, channels = trello.get_information(_CONFIG['trello'], data['trello'])
-        elif 'sensu' in data:
-          message, channels = sensu.get_information(_CONFIG['sensu'], data['sensu'])
+        if 'trello' in data and 'trello' in _CONFIG:
+            message, channels = trello.get_information(_CONFIG['trello'],
+                                                       data['trello'])
+        elif 'sensu' in data and 'sensu' in _CONFIG:
+            message, channels = sensu.get_information(_CONFIG['sensu'],
+                                                      data['sensu'])
         else:
             message = None
         if message:

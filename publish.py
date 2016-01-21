@@ -38,8 +38,10 @@ def main():
                       help="0MQ socket connection: bind|connect")
     parser.add_option("-e", "--endpoint", dest="endpoint", help="0MQ Endpoint")
     parser.add_option("-f", "--file", dest="file", help="JSON file to parse")
-    parser.add_option("-p", "--plugin", dest="plugin", help="zircbot plugin to use")
-    parser.set_defaults(method="bind", endpoint="tcp://*:7777", file='data/trello.json', plugin='trello')
+    parser.add_option("-p", "--plugin", dest="plugin",
+                      help="zircbot plugin to use")
+    parser.set_defaults(method="bind", endpoint="tcp://*:7777",
+                        file='data/trello.json', plugin='trello')
 
     (options, args) = parser.parse_args()
 

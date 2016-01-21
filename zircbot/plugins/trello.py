@@ -41,8 +41,6 @@ def get_channels(data):
 
 
 def get_information(ctx, data):
-    data = data['trello']
-
     message = to_message(data)
 
     board_name = data['action']['data']['board']['shortLink']

@@ -22,7 +22,6 @@ configured IRC chans.
 '''
 
 from optparse import OptionParser
-import time
 
 import json
 

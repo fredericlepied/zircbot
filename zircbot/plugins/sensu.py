@@ -14,13 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import traceback
 from twisted.python import log
+
 
 def get_channels(data):
     '''Return the list of channels the zircbot should connect to
        notify sensu events'''
 
     return sum(data.values(), [])
+
 
 def get_information(ctx, data):
 
@@ -29,16 +32,22 @@ def get_information(ctx, data):
 
     return message, channels
 
+
 def to_message(data):
     try:
-        return   '(%s) %s: %s - %s' % (get_client_name(data), get_action(data).upper(), get_check_name(data), get_check_output(data).rstrip())
+        return '(%s) %s: %s - %s' % (get_client_name(data),
+                                     get_action(data).upper(),
+                                     get_check_name(data),
+                                     get_check_output(data).rstrip())
     except:
         log.msg('error decoding data %s:' % data)
         log.msg(traceback.format_exc())
     return None
 
+
 def get_client_name(data):
     return data['client']['name']
+
 
 def get_action(data):
     action = data['action']
@@ -46,8 +55,10 @@ def get_action(data):
         action = 'alert'
     return action
 
+
 def get_check_name(data):
     return data['check']['name']
+
 
 def get_check_output(data):
     return data['check']['output']

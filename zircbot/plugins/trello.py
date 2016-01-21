@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import traceback
 from twisted.python import log
 
 
@@ -31,6 +32,7 @@ _CARD_ASSOC = {
     'updateComment': 'udpated a comment on',
 }
 
+
 def get_channels(data):
     '''Return the list of channels the zircbot should connect to
        notify trello events'''
@@ -47,6 +49,7 @@ def get_information(ctx, data):
     channels = ctx[board_name]
 
     return message, channels
+
 
 def to_message(data):
     board_assoc = {
@@ -76,17 +79,20 @@ def to_message(data):
         log.msg(traceback.format_exc())
     return None
 
+
 def get_card_name(card_data):
     try:
         return card_data['name']
     except KeyError:
         return card_data['idShort']
 
+
 def get_url(data):
     if 'attachment' in data and 'url' in data['attachment']:
         return data['attachment']['url']
     else:
         return 'https://trello.com/c/' + data['card']['shortLink']
+
 
 def get_action(data):
     if data['type'] == 'updateCard':

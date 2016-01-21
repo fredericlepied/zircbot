@@ -1,0 +1,55 @@
+{
+  "id": "9f4c5e36-e08b-4b04-99a7-2c5806a8177c",
+  "dcid": "mydc",
+  "client": {
+    "name": "monitoring",
+    "address": "127.0.0.1",
+    "subscriptions": [
+      "base"
+    ],
+    "version": "0.21.0",
+    "timestamp": 1453302198
+  },
+  "check": {
+    "command": "check-ports.rb -h 0.0.0.0 -p 80 -t 30",
+    "interval": 10,
+    "standalone": true,
+    "handlers": [
+      "irc",
+      "file"
+    ],
+    "name": "uchiwa",
+    "issued": 1453302212,
+    "executed": 1453302212,
+    "duration": 0.13,
+    "output": "CheckPort OK: All ports (80) are accessible for host 0.0.0.0\n",
+    "status": 0,
+    "history": [
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "2",
+      "0"
+    ],
+    "total_state_change": 6
+  },
+  "occurrences": 114,
+  "action": "resolve",
+  "timestamp": 1453302212
+}

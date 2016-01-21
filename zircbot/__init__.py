@@ -33,6 +33,8 @@ from txzmq import ZmqSubConnection
 from twisted.internet import reactor, protocol
 from twisted.python import log
 from twisted.words.protocols import irc
+from zircbot.plugins import trello
+from zircbot.plugins import sensu
 
 _CONFIG = None
 _IRC_PROTOCOL = None
@@ -52,11 +54,15 @@ class IrcProtocol(irc.IRCClient):
         self.realname = _CONFIG['nickname']
 
     def signedOn(self):
-        channels = set()
-        for board_name in _CONFIG['trello'].keys():
-            for channel in _CONFIG['trello'][board_name]:
-                channels.add(channel)
-        for channel in channels:
+        channels = []
+
+        if _CONFIG['trello']:
+            channels += trello.get_channels(_CONFIG['trello'])
+
+        if _CONFIG['sensu']:
+            channels += sensu.get_channels(_CONFIG['sensu'])
+
+        for channel in set(channels):
             self.join(channel)
         log.msg('Connected to IRC server %s:%s' % (_CONFIG['host'],
                                                    _CONFIG['port']))
@@ -85,13 +91,9 @@ class IrcProtocol(irc.IRCClient):
 
     def forward(self, data):
         if 'trello' in data:
-            trello_data = data['trello']
-            message = trello_to_message(trello_data)
-            try:
-                bd_name = trello_data['action']['data']['board']['shortLink']
-                channels = _CONFIG['trello'][bd_name]
-            except KeyError:
-                channels = []
+           message, channels = trello.get_information(_CONFIG['trello'], data['trello'])
+        elif 'sensu' in data:
+          message, channels = sensu.get_information(_CONFIG['sensu'], data['sensu'])
         else:
             message = None
         if message:
@@ -105,87 +107,6 @@ class IrcProtocol(irc.IRCClient):
 
 class IrcFactory(protocol.ReconnectingClientFactory):
     protocol = IrcProtocol
-
-
-def get_card_name(card_data):
-    try:
-        return card_data['name']
-    except KeyError:
-        return card_data['idShort']
-
-
-def get_url(data):
-    if 'attachment' in data and 'url' in data['attachment']:
-        return data['attachment']['url']
-    else:
-        return 'https://trello.com/c/' + data['card']['shortLink']
-
-
-_CARD_ASSOC = {
-    'addMemberToCard': 'added to',
-    'removeMemberFromCard': 'removed from',
-    'createCard': 'created',
-    'deleteCard': 'deleted',
-    'commentCard': 'commented on',
-    'updateCard': 'updated',
-    'addAttachmentToCard': 'added an attachment to',
-    'addChecklistToCard': 'not used',
-    'createCheckItem': 'not used',
-    'updateCheckItemStateOnCard': 'not used',
-    'updateComment': 'udpated a comment on',
-}
-
-
-def get_action(data):
-    if data['type'] == 'updateCard':
-        if 'listAfter' in data['data']:
-            return('moved to the list "%s"' %
-                   data['data']['listAfter']['name'])
-        if 'closed' in data['data']['card'] and \
-           data['data']['card']['closed'] is True:
-            return('archived')
-    elif data['type'] == 'addChecklistToCard':
-        return('added the list "%s" to' % data['data']['checklist']['name'])
-    elif data['type'] == 'createCheckItem':
-        return('added "%s" to the list "%s" of' %
-               (data['data']['checkItem']['name'],
-                data['data']['checklist']['name']))
-    elif data['type'] == 'updateCheckItemStateOnCard':
-        return('%schecked "%s" to the list "%s" of' %
-               ('' if data['data']['checkItem']['state'] == 'complete'
-                else 'un',
-                data['data']['checkItem']['name'],
-                data['data']['checklist']['name']))
-    return _CARD_ASSOC[data['type']]
-
-
-def trello_to_message(data):
-    board_assoc = {
-        'addMemberToBoard': 'added to',
-        'removeMemberFromBoard': 'removed from',
-    }
-    try:
-        if data['action']['type'] in _CARD_ASSOC:
-            if 'member' in data['action']:
-                member = 'member'
-            else:
-                member = 'memberCreator'
-            return '%s %s the card "%s": %s' % \
-                (data['action'][member]['fullName'],
-                 get_action(data['action']),
-                 get_card_name(data['action']['data']['card']),
-                 get_url(data['action']['data']))
-        elif data['action']['type'] in board_assoc:
-            return '%s %s the board: %s' % \
-                (data['action']['member']['fullName'],
-                 board_assoc[data['action']['type']],
-                 data['model']['shortUrl'])
-        else:
-            log.msg('unsupported data %s:' % data)
-    except:
-        log.msg('error decoding data %s:' % data)
-        log.msg(traceback.format_exc())
-    return None
 
 
 def main():
@@ -212,8 +133,5 @@ def main():
     s.gotMessage = do_forward
 
     reactor.run()
-
-if __name__ == "__main__":
-    main()
 
 # zircbot.py ends here

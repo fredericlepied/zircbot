@@ -3,8 +3,8 @@ zircbot
 
 zircbot is an IRC bot that relays notification from 0mq messages. It
 now supports trello notifications (see
-https://github.com/fredericlepied/ztrellohook) and sensu
-notifications.
+https://github.com/fredericlepied/ztrellohook), gerrit events (see
+https://github.com/fredericlepied/zgerrit) and sensu notifications.
 
 Installation
 ++++++++++++

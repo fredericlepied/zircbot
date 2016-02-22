@@ -32,6 +32,7 @@ from txzmq import ZmqSubConnection
 from twisted.internet import reactor, protocol
 from twisted.python import log
 from twisted.words.protocols import irc
+from zircbot.plugins import gerrit
 from zircbot.plugins import trello
 from zircbot.plugins import sensu
 
@@ -60,6 +61,9 @@ class IrcProtocol(irc.IRCClient):
 
         if 'sensu' in _CONFIG and _CONFIG['sensu']:
             channels += sensu.get_channels(_CONFIG['sensu'])
+
+        if 'gerrit' in _CONFIG and _CONFIG['gerrit']:
+            channels += gerrit.get_channels(_CONFIG['gerrit'])
 
         for channel in set(channels):
             self.join(channel)
@@ -95,6 +99,9 @@ class IrcProtocol(irc.IRCClient):
         elif 'sensu' in data and 'sensu' in _CONFIG:
             message, channels = sensu.get_information(_CONFIG['sensu'],
                                                       data['sensu'])
+        elif 'gerrit' in data and 'gerrit' in _CONFIG:
+            message, channels = gerrit.get_information(_CONFIG['gerrit'],
+                                                       data['gerrit'])
         else:
             message = None
         if message:

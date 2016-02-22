@@ -16,3 +16,5 @@ trello:
   <BOARD_SHORT_ID_2>: ['#mychan2']
 sensu:
   <SENSU_DC_NAME>: ['#mychan-admin']
+gerrit:
+  <project regexp>: ['mychan3']

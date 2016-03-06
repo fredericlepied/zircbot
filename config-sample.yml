@@ -18,3 +18,5 @@ sensu:
   <SENSU_DC_NAME>: ['#mychan-admin']
 gerrit:
   <project regexp>: ['mychan3']
+message:
+  <topic>: ['#mychan4']

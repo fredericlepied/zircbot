@@ -33,6 +33,7 @@ from twisted.internet import reactor, protocol
 from twisted.python import log
 from twisted.words.protocols import irc
 from zircbot.plugins import gerrit
+from zircbot.plugins import message
 from zircbot.plugins import trello
 from zircbot.plugins import sensu
 
@@ -70,18 +71,18 @@ class IrcProtocol(irc.IRCClient):
         log.msg('Connected to IRC server %s:%s' % (_CONFIG['host'],
                                                    _CONFIG['port']))
 
-    def privmsg(self, user, channel, message):
+    def privmsg(self, user, channel, msg):
         nick, _, host = user.partition('!')
-        log.msg("{} <{}> {}".format(channel, nick, message))
+        log.msg("{} <{}> {}".format(channel, nick, msg))
         # only answer to message involving the robot's nickname or to
         # a private message
-        if message.find(self.nickname) == -1 and channel != self.nickname:
+        if msg.find(self.nickname) == -1 and channel != self.nickname:
             log.msg("nothing for me")
             return
-        message = shlex.split(message.strip())
-        if (channel != self.nickname and len(message) > 1 and
+        msg = shlex.split(msg.strip())
+        if (channel != self.nickname and len(msg) > 1 and
            message[0][-1] == ':'):
-            message = message[1:]
+            msg = msg[1:]
         if channel == self.nickname:
             channel = nick
             prefix = ''
@@ -94,23 +95,26 @@ class IrcProtocol(irc.IRCClient):
 
     def forward(self, data):
         if 'trello' in data and 'trello' in _CONFIG:
-            message, channels = trello.get_information(_CONFIG['trello'],
-                                                       data['trello'])
+            msg, channels = trello.get_information(_CONFIG['trello'],
+                                                   data['trello'])
         elif 'sensu' in data and 'sensu' in _CONFIG:
-            message, channels = sensu.get_information(_CONFIG['sensu'],
-                                                      data['sensu'])
+            msg, channels = sensu.get_information(_CONFIG['sensu'],
+                                                  data['sensu'])
         elif 'gerrit' in data and 'gerrit' in _CONFIG:
-            message, channels = gerrit.get_information(_CONFIG['gerrit'],
-                                                       data['gerrit'])
+            msg, channels = gerrit.get_information(_CONFIG['gerrit'],
+                                                   data['gerrit'])
+        elif 'message' in data and 'message' in _CONFIG:
+            msg, channels = message.get_information(_CONFIG['message'],
+                                                    data['message'])
         else:
-            message = None
-        if message:
+            msg = None
+        if msg:
             for channel in channels:
-                self.send(channel, message)
+                self.send(channel, msg)
 
-    def send(self, channel, message):
-        self.msg(channel, str(message))
-        log.msg("{}: {}".format(channel, message))
+    def send(self, channel, msg):
+        self.msg(channel, str(msg))
+        log.msg("{}: {}".format(channel, msg))
 
 
 class IrcFactory(protocol.ReconnectingClientFactory):

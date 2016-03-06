@@ -55,7 +55,8 @@ def to_message(data):
         elif data['type'] in ('ref-replicated', 'comment-added',
                               'ref-replication-done', 'change-merged',
                               'reviewer-added', 'ref-updated',
-                              'change-restored', 'change-abandoned'):
+                              'change-restored', 'change-abandoned',
+                              'topic-changed'):
             return None, None
         else:
             log.msg('unsupported data %s:' % data)

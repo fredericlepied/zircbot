@@ -40,12 +40,15 @@ def get_channels(data):
 
 
 def get_information(ctx, data):
-    message = to_message(data)
+    try:
+        message = to_message(data)
 
-    board_name = data['action']['data']['board']['shortLink']
-    channels = ctx[board_name]
+        board_name = data['action']['data']['board']['shortLink']
+        channels = ctx[board_name]
 
-    return message, channels
+        return message, channels
+    except Exception:
+        return None, None
 
 
 def to_message(data):

@@ -25,11 +25,13 @@ def get_channels(data):
 
 
 def get_information(ctx, data):
+    try:
+        message = to_message(data)
+        channels = ctx[data['dcid']]
 
-    message = to_message(data)
-    channels = ctx[data['dcid']]
-
-    return message, channels
+        return message, channels
+    except Exception:
+        return None, None
 
 
 def to_message(data):
